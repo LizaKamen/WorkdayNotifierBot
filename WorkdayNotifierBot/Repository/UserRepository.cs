@@ -25,6 +25,7 @@ public class UserRepository
         userToUpdate.Period = user.Period;
         userToUpdate.StartDate = user.StartDate;
         userToUpdate.LastWorkDay = user.LastWorkDay;
+        userToUpdate.UtcOffset = user.UtcOffset;
         context.SaveChanges();
     }
 }

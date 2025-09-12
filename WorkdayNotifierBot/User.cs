@@ -6,6 +6,7 @@ public class User
 {
     public Guid Id { get; set; }
     public string UserId { get; set; }
+    public int UtcOffset { get; set; }
     public string ChatId { get; set; }
     public TimeOnly StartDate { get; set; }
     public int Duration { get; set; }

@@ -50,9 +50,22 @@ public class TelegramBotHandler : IUpdateHandler
                 }
 
                 break;
+            case "/utcoffset":
+                if (int.TryParse(arg, out var offset))
+                {
+                    user.UtcOffset = offset;
+                    UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated utc offset to {offset}");
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Please enter a valid number.");
+                }
+
+                break;
             case "/status":
                 await botClient.SendMessage(chatId,
-                    $"{userName} stats: Start date: {user.StartDate}, Period: {user.Period}, Duration: {user.Duration}.");
+                    $"{userName} stats: Start date: {user.StartDate}, Period: {user.Period}, Duration: {user.Duration}, UtcOffset: {user.UtcOffset}");
                 break;
             case "/duration":
                 if (int.TryParse(arg, out var duration))
@@ -134,12 +147,13 @@ public class TelegramBotHandler : IUpdateHandler
 
     public static string CalculateHoursAndCreateResponse(User user, string userName)
     {
-        var timeRemaining = user.StartDate.AddHours(user.Duration) - TimeOnly.FromDateTime(DateTime.Now);
+        var timeRemaining = user.StartDate.AddHours(user.Duration) -
+                            TimeOnly.FromDateTime(DateTime.UtcNow).AddHours(user.UtcOffset);
         var hours = timeRemaining.Hours;
         var mins = timeRemaining.Minutes;
         var msg = hours > user.Duration
             ? $"{userName}, на сегодня все, отдыхай братик"
-            : $"{userName}, До конца рабочего дня осталось {hours} часов {mins} минут";
+            : $"{userName}, До конца рабочего дня осталось {(hours > 0 ? $"{hours} часов" : "")} {(mins > 0 ? $"{mins} минут" : "")}";
         return msg;
     }
 
