@@ -20,6 +20,8 @@ Tg bot to notify users about their workday duration
 
 `/tillend` - prints time till end of work day
 
+`/utcoffset [HH]` - set utc offset (can be negative)
+
 ## Run
 
 Clone repo
