@@ -33,7 +33,7 @@ public class TelegramBotHandler : IUpdateHandler
         command = args[0];
         if (args.Length > 1)
             arg = args[1];
-        var user = UserRepository.GetUserForChatOrCreate(chatId, sender);
+        var user = await UserRepository.GetUserForChatOrCreate(chatId, sender);
 
         switch (command)
         {
@@ -41,12 +41,12 @@ public class TelegramBotHandler : IUpdateHandler
                 if (TimeOnly.TryParse(arg, out var time))
                 {
                     user.StartDate = time;
-                    UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated start time to {time}");
+                    await UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated start time to {time}", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, "Please enter a valid time format.");
+                    await botClient.SendMessage(chatId, "Please enter a valid time format.", cancellationToken: cancellationToken);
                 }
 
                 break;
@@ -54,29 +54,29 @@ public class TelegramBotHandler : IUpdateHandler
                 if (int.TryParse(arg, out var offset))
                 {
                     user.UtcOffset = offset;
-                    UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated utc offset to {offset}");
+                    await UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated utc offset to {offset}", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, "Please enter a valid number.");
+                    await botClient.SendMessage(chatId, "Please enter a valid number.", cancellationToken: cancellationToken);
                 }
 
                 break;
             case "/status":
                 await botClient.SendMessage(chatId,
-                    $"{userName} stats: Start date: {user.StartDate}, Period: {user.Period}, Duration: {user.Duration}, UtcOffset: {user.UtcOffset}");
+                    $"{userName} stats: Start date: {user.StartDate}, Period: {user.Period}, Duration: {user.Duration}, UtcOffset: {user.UtcOffset}", cancellationToken: cancellationToken);
                 break;
             case "/duration":
                 if (int.TryParse(arg, out var duration))
                 {
                     user.Duration = duration;
-                    UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated duration to {duration}");
+                    await UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated duration to {duration}", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, "Please enter a valid time format.");
+                    await botClient.SendMessage(chatId, "Please enter a valid time format.", cancellationToken: cancellationToken);
                 }
 
                 break;
@@ -84,12 +84,12 @@ public class TelegramBotHandler : IUpdateHandler
                 if (int.TryParse(arg, out var period))
                 {
                     user.Period = period;
-                    UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated period to {period}");
+                    await UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated period to {period}", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, "Please enter a valid time format.");
+                    await botClient.SendMessage(chatId, "Please enter a valid time format.", cancellationToken: cancellationToken);
                 }
 
                 break;
@@ -97,12 +97,12 @@ public class TelegramBotHandler : IUpdateHandler
                 if (DateOnly.TryParse(arg, out var date))
                 {
                     user.LastWorkDay = date;
-                    UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated last work date to {date}");
+                    await UserRepository.UpdateUser(user);
+                    await botClient.SendMessage(chatId, $"{userName} updated last work date to {date}", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, "Please enter a valid date format.");
+                    await botClient.SendMessage(chatId, "Please enter a valid date format.", cancellationToken: cancellationToken);
                 }
 
                 break;
@@ -110,26 +110,26 @@ public class TelegramBotHandler : IUpdateHandler
                 if (user.LastWorkDay != DateOnly.MinValue)
                 {
                     var days = (DateTime.Today - user.LastWorkDay.ToDateTime(TimeOnly.MinValue)).Days;
-                    await botClient.SendMessage(chatId, $"{userName} безработный уже {days} дней EZ");
+                    await botClient.SendMessage(chatId, $"{userName} безработный уже {days} дней EZ", cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    await botClient.SendMessage(chatId, $"{userName} не безработный, топ топ в офис");
+                    await botClient.SendMessage(chatId, $"{userName} не безработный, топ топ в офис", cancellationToken: cancellationToken);
                 }
 
                 break;
             case "/enable":
-                await botClient.SendMessage(chatId, $"{userName} enabled notifications ");
-                await EnableNotificationsForChat(chatId, user, userName);
+                await botClient.SendMessage(chatId, $"{userName} enabled notifications ", cancellationToken: cancellationToken);
+                EnableNotificationsForChat(chatId, user, userName);
                 break;
             case "/tillend":
                 await botClient.SendMessage(chatId,
-                    CalculateHoursAndCreateResponse(user, userName));
+                    CalculateHoursAndCreateResponse(user, userName), cancellationToken: cancellationToken);
                 break;
         }
     }
 
-    private async Task EnableNotificationsForChat(string chatId, User user, string userName)
+    private void EnableNotificationsForChat(string chatId, User user, string userName)
     {
         var jobId = $"tg-notification-{chatId}";
         _recurringJobManager.RemoveIfExists(jobId);
@@ -160,7 +160,7 @@ public class TelegramBotHandler : IUpdateHandler
     public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source,
         CancellationToken cancellationToken)
     {
-        Console.WriteLine(exception);
-        throw exception;
+        Console.WriteLine(exception.Message);
+        return Task.CompletedTask;
     }
 }
