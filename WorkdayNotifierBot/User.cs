@@ -12,4 +12,6 @@ public class User
     public int Duration { get; set; }
     public int Period { get; set; }
     public DateOnly LastWorkDay  { get; set; }
+    public bool IsNotificationsOn { get; set; }
+    public bool IsWorkFinishedForToday { get; set; }
 }

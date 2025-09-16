@@ -27,6 +27,8 @@ public class UserRepository
         userToUpdate.StartDate = user.StartDate;
         userToUpdate.LastWorkDay = user.LastWorkDay;
         userToUpdate.UtcOffset = user.UtcOffset;
+        userToUpdate.IsNotificationsOn = user.IsNotificationsOn;
+        userToUpdate.IsWorkFinishedForToday = user.IsWorkFinishedForToday;
         await context.SaveChangesAsync();
     }
 }
