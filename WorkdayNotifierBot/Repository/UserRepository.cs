@@ -24,6 +24,7 @@ public class UserRepository
         context.Users.Update(userToUpdate);
         userToUpdate.Duration = user.Duration;
         userToUpdate.Period = user.Period;
+        userToUpdate.PeriodType = user.PeriodType;
         userToUpdate.StartDate = user.StartDate;
         userToUpdate.LastWorkDay = user.LastWorkDay;
         userToUpdate.UtcOffset = user.UtcOffset;

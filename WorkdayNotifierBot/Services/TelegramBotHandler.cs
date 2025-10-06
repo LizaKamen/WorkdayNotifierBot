@@ -94,11 +94,18 @@ public class TelegramBotHandler : IUpdateHandler
 
                 break;
             case "/period":
-                if (int.TryParse(arg, out var period))
+                if (int.TryParse(args[1], out var period))
                 {
                     user.Period = period;
+                    if (args[2] == "days" || args[2] == "hours" || args[2] == "minutes")
+                        user.PeriodType = args[2];
+                    else
+                    {
+                        await botClient.SendMessage(chatId, "Please enter a valid time format.",
+                            cancellationToken: cancellationToken);
+                    }
                     await UserRepository.UpdateUser(user);
-                    await botClient.SendMessage(chatId, $"{userName} updated period to {period}",
+                    await botClient.SendMessage(chatId, $"{userName} updated period to every {period} {args[2]}",
                         cancellationToken: cancellationToken);
                     if (user.IsNotificationsOn)
                         EnableNotificationsForChat(chatId, user, userName);
@@ -170,12 +177,18 @@ public class TelegramBotHandler : IUpdateHandler
 
     private void EnableNotificationsForChat(string chatId, User user, string userName)
     {
+        var cron = user.PeriodType switch
+        {
+            "minutes" => $"*/{user.Period} * * * *",
+            "hours" => $"0 */{user.Period} * * *",
+            "days" => $"0 12 */{user.Period} * *"
+        };
         var jobId = $"tg-notification-{chatId}-{userName}";
         _recurringJobManager.RemoveIfExists(jobId);
         _recurringJobManager.AddOrUpdate(
             jobId,
             () => SendMessage(_botToken, chatId, user, userName),
-            $"*/{user.Period} * * * *");
+            cron);
     }
 
     private void DisableNotificationsForChat(string chatId, string userName)
